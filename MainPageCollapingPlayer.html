@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<link src="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+html {
+    background: rgba(0, 0, 0, 0);
+}
+body{
+	font-family: 'Raleway';
+}
+.table {
+    width: 100%;
+}
+#image {
+    width: 150px;
+    height: 150px;
+}
+.text {
+    font-size: 15px;
+    color: #d3d3d3;
+}
+.label {
+    font-size: 30px;
+    color: #d3d3d3;
+}
+/* Play/Pause Button */
+.box {
+    width: 37px;
+    height: 37px;
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: 19px 0px 19px 37px;
+    border-color: transparent transparent transparent #d3d3d3;
+    transition: all 100ms ease-in-out;
+    margin: auto;
+	margin-bottom: 10px;
+}
+.pause {
+    border-style: double;
+    border-width: 0px 0px 0px 30px;
+}
+/* History Container */
+#itemsContainer {
+    margin: 20px;
+    height: 200px;
+  	width: 150px;
+    overflow: hidden;
+}
+#itemsContainer #item {
+    margin: auto;
+    width: 200px;
+    display: flex;
+    flex-direction: row;
+}
+#item #pastImage #coverImage {
+    width: 50px;
+    height: 50px;
+}
+#item #pastTitleArtist p {
+    margin-top: auto;
+    margin-bottom: 10px;
+	margin-left: 5px;
+	float: left;
+    width: 150px;
+	text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    color: white;
+}
+#itemsContainer #item #pastTitleArtist {
+    width: 300px;
+}
+/* Volume Slider */
+.slidecontainer {
+    width: 100%;
+}
+.slider {
+    -webkit-appearance: none;
+    width: 140px;
+    height: 10px;
+    background: #555555;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+.slider:hover {
+    opacity: 1;
+}
+.slider::-webkit-slider-thumb {
+-webkit-appearance: none;
+appearance: none;
+width: 10px;
+height: 10px;
+background: #d3d3d3;
+cursor: pointer;
+}
+.slider::-moz-range-thumb {
+width: 15px;
+height: 15px;
+border-radius: 50%;
+background: #d3d3d3;
+cursor: pointer;
+}
+/* Volume Slider Images */
+	i {
+		position: absolute;
+		margin-top: -6px;
+		color: #d3d3d3;
+	}
+	
+	i.fa-volume-down {
+		margin-left: -15px;
+		margin-top: 0px;
+	}
+	
+	i.fa-volume-up {
+		margin-left: 3px;
+		margin-top: 0px;
+	}
+</style>
+<body>
+<link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+</body>
+<head>
+<table class="table">
+  <tr>
+    <th><img style="z-index: 2; position: relative;" id="image" src="https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png" onerror="this.onerror=null;this.src='https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png'" alt=""/><img style = "z-index: 1; position: absolute; left: 19%;" id="image" src="https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png" onerror="this.onerror=null;this.src='https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png'" alt=""/></th>
+  </tr>
+  <tr>
+    <th class="text" id="title">Title</th>
+  </tr>
+  <tr>
+    <th class="text" id="artist">Artist</th>
+  </tr>
+  <tr></tr>
+</table>
+<div>
+  <div class="box"></div>
+  <!--   <div class="box pause"></div> -->
+</div>
+<table class="table">
+  <tr>
+    <th class="slidercontainer"><i class="fa fa-volume-down"></i><input type="range" min="1" max="100" value="50" class="slider" id="volume"><i class="fa fa-volume-up"></i></th>
+  </tr>
+  <tr>
+    <th><hr style="width:150px;"></th>
+  </tr>
+  <tr>
+    <th class="label">History</th>
+  </tr>
+  <tr>
+    <th id="itemsContainer"></th>
+  </tr>
+</table>
+</head>
+<!-- Include the jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script>
+		// Keep Track of played audio
+		var pastSongs = [];
+		var songProperties = {
+			"title":"Title",
+			"artist":"Artist",
+			"src":"Image"
+		};
+		var songChanged = false;
+		var LiveAudio = new Audio('https://live.wostreaming.net/direct/kcwu-kcwufmmp3-ibc1');
+		//https://live.wostreaming.net/direct/kcwu-kcwufmmp3-ibc1
+		//https://live.wostreaming.net/direct/kcwu-burg2mp3-ibc4
+		const state = {
+			Playing: "playing",
+			Paused: "paused",
+		}
+		let Player = state.Paused;
+		setInterval(updateTitleArtist, 5000);
+		
+		const box = document.querySelector('.box');
+		box.addEventListener('click', (e)=>{
+			e.target.classList.toggle('pause');
+			
+			if(Player === state.Paused){ // if Player is paused
+				// set playing state to play
+				Player = state.Playing;
+				LiveAudio.play();
+			}else{
+				// set playing state to pause
+				Player = state.Paused;
+				LiveAudio.pause();
+			}
+		})
+		document.getElementById("volume").oninput = function(){
+			LiveAudio.volume = (this.value/100);
+		}
+		function updateTitleArtist(){
+		'use strict';
+		//use jQuery ajax call
+		$.ajax({
+			//url: "http://api.nowplaying.abacast.net/prt/nowplaying/2/1/3057/nowplaying.xml",
+                        //3295
+			
+			url: "https://prt.wostreaming.net/prt/nowplaying/2/6/3057/nowplaying.xml",
+			picurl: "http://d2ybyaxt0fuzrp.cloudfront.net/image/3057/Tai+Verdes/A-O-K/medium",
+			cache: false,
+			dataType: "xml",
+			
+			success: function(xml){
+				$(xml).find("performances").each(function(){
+					// Parse xml first elements
+					var artist = $(this).find("artist:eq(0)").text();
+					var title = $(this).find("title:eq(0)").text();         
+					var image = $(this).find("mediumimage:eq(0)").text();
+					
+					/*
+						On Song Change
+					*/
+					if($("#artist").text() != artist){
+						console.log("Song Changed!");
+						songChanged = true;
+						document.getElementById('image').src = 'http://d2ybyaxt0fuzrp.cloudfront.net/image/3057/Marc+Benjamin+ft+Simon+Erics/Whistle/medium';
+					}
+					//add the info to the div on the page
+					if(songChanged){
+						/*
+							Update Currently Playing
+						*/
+						$("#title").empty();
+						$("#artist").empty();
+						$("#artist").append(artist);
+						$("#title").append(title);
+						document.getElementById('image').src=image;
+						
+					
+						/*
+							Update Recently Played
+						*/
+						var start = 1;
+						var stop = 4;
+						while (start != stop){
+							songProperties = {
+								"title": $(this).find("title:eq("+start+")").text(),
+								"artist": $(this).find("artist:eq("+start+")").text(),
+								"src": $(this).find("mediumimage:eq("+start+")").text()
+							};
+							pastSongs.push(songProperties);
+							if(pastSongs.length > 3){
+								pastSongs.shift();
+							}
+							start++;
+						}
+						$(xml).find("performances").each(function(){
+							var str = "";
+							pastSongs.forEach(function(pastSongs){
+								str += "<div id='item'>"+
+											'<div id="pastImage">'+
+												'<img id="coverImage" src="' + pastSongs.src +'" onerror="this.onerror=null;this.src='+"'https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png'"+'"></img>'+
+											'</div>' +
+											'<div id="pastTitleArtist">'+
+												'<p>'+ pastSongs.title +'</p>'+
+												'<p>'+ pastSongs.artist	+'</p>'+
+											'</div>'+
+										'</div>';
+							});
+							document.getElementById("itemsContainer").innerHTML = str;
+						});
+						songChanged = false;
+					}
+					
+				});
+			}
+				
+				
+		});
+}
+	</script>
+</html>

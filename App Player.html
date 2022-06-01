@@ -1,0 +1,159 @@
+<html>
+	<head>
+		<style>
+			body{
+				height: 100vh;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+
+			.center{
+				transform: translate(-50%, -50%);
+				position: absolute;
+				bottom:0px;
+				right:49%;
+				left:51%;
+				margin-right: 80px;
+			}
+
+			.box{
+				width: 74px;
+				height: 74px;
+				box-sizing: border-box;
+				border-style: solid;
+				border-width: 37px 0px 37px 74px;
+				border-color: transparent transparent transparent white;
+				transition: all 100ms ease-in-out;
+			}
+
+			.pause{
+				border-style: double;
+				border-width:0px 0px 0px 60px;
+			}
+			.container{
+				background-color: #ffffff;
+			}
+			#image {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				width: 200px;
+				height: 200px;
+			}
+			#title {
+				float: top;
+				font-size: 20px;
+				text-align: center;
+				color: white;
+			}
+			#artist {
+				float: bottom;
+				font-size: 20px;
+				text-align: center;
+				color: white;
+			}
+                        #maintenance{
+				float: bottom;
+				font-size: 20px;
+				text-align: center;
+				color: white;
+				margin-top: 10px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		
+		<div id="center">
+			<div id="imageContainer"><img id="image" class = "image" src="https://static.wixstatic.com/media/d672b9_6d30feb5ce0b40449809af708d166491~mv2.png" alt="Italian Trulli"></div>
+			<div id="title">{title}</div>
+			<div id="artist">{Artist}</div>
+		</div>
+		<div class="container">
+			<div class="box center"></div>
+			<!--   <div class="box pause"></div> -->
+		</div>
+	</body>
+	<!-- Include the jQuery Mobile library -->
+	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.js"></script>
+	<!-- Include the jQuery library -->
+	<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script>
+		var LiveAudio = new Audio('https://live.wostreaming.net/direct/kcwu-kcwufmmp3-ibc1');
+		const state = {
+			Playing: "playing",
+			Paused: "paused",
+		}
+		let Player = state.Paused;
+		setInterval(updateTitleArtist, 5000);
+		
+		const box = document.querySelector('.box');
+		box.addEventListener('click', (e)=>{
+			e.target.classList.toggle('pause');
+			
+			if(Player === state.Paused){ // if Player is paused
+				// set playing state to play
+				Player = state.Playing;
+				LiveAudio.play();
+			}else{
+				// set playing state to pause
+				Player = state.Paused;
+				LiveAudio.pause();
+			}
+		})
+		function updateTitleArtist(){
+		'use strict';
+		//use jQuery ajax call
+		$.ajax({
+			//url: "http://api.nowplaying.abacast.net/prt/nowplaying/2/1/3057/nowplaying.xml",
+                        //3295
+			url: "https://prt.wostreaming.net/prt/nowplaying/2/1/3057/nowplaying.xml",
+			picurl: "http://d2ybyaxt0fuzrp.cloudfront.net/image/3057/Tai+Verdes/A-O-K/medium",
+			cache: false,
+			dataType: "xml",
+			success: function(xml){
+				//empty the div on the screen
+				$("#title").empty();
+				$("#artist").empty();
+				$(xml).find("performances").each(function(){
+					//create the set of data using the fields in the xml
+
+					var artist = $(this).find("artist").text();
+					var title = $(this).find("title").text();           
+					var image = $(this).find("mediumimage").text();
+
+					//add the info to the div on the page
+					$("#artist").append('<br>');
+					$("#artist").append(artist);
+					$("#title").append('<br>');
+					$("#title").append(title);
+				
+					function checkImage(imageSrc, good, bad) {
+						var img = new Image();
+						img.onload = good; 
+						img.onerror = bad;
+						img.src = imageSrc;
+					}
+                                        if('mediaSession' in navigator){
+                                            navigator.mediaSession.metadata=new MediaMetadata({
+                                            title: title,
+                                            artist: artist,
+                                            artwork:{src:'https://static.wixstatic.com/media/d672b9_6d30feb5ce0b40449809af708d166491~mv2.png', type:'img/png'}
+                                            });
+                                        }
+					checkImage(image, 
+						function(){ document.getElementById('image').src=image; }, 
+						function(){ document.getElementById('image').src="https://static.wixstatic.com/media/d672b9_6d30feb5ce0b40449809af708d166491~mv2.png"; } );
+				});
+			}
+					
+				
+		});
+}
+	</script>
+</html>
