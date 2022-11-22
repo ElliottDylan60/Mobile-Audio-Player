@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+	<head>
+		<style>
+			body{
+				height: 100vh;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+                background-color: black;
+			}
+
+			.center{
+				transform: translate(-50%, -50%);
+				position: absolute;
+				bottom:0px;
+				right:49%;
+				left:51%;
+				margin-right: 80px;
+			}
+
+			.box{
+				width: 74px;
+				height: 74px;
+				box-sizing: border-box;
+				border-style: solid;
+				border-width: 37px 0px 37px 74px;
+				border-color: transparent transparent transparent white;
+				transition: all 100ms ease-in-out;
+			}
+
+.pause{
+	border-style: double;
+	border-width:0px 0px 0px 60px;
+}
+.container{
+	background-color: #ffffff;
+}
+#image {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 200px;
+	height: 200px;
+}
+#title {
+	float: top;
+	font-size: 20px;
+	text-align: center;
+	color: white;
+}
+#artist {
+	float: bottom;
+	font-size: 20px;
+	text-align: center;
+	color: white;
+}
+#container {
+    margin: auto;
+    width: 200px;
+	display: table;
+}
+.ClearIT{
+	float: none;		
+}
+html {
+
+}
+
+#itemsContainer {
+	margin: 20px;
+	overflow-y: scroll;
+	height: 180px;
+	scrollbar-width: none;
+
+}
+#itemsContainer #item {
+	margin: auto;
+	width: 200px;
+	display: flex;
+	flex-direction: row;		
+}
+#item #pastImage #coverImage {
+	width: 50px;
+	height: 50px;
+}
+#item #pastTitleArtist p {
+	margin-top: auto;
+	margin-bottom: 10px;
+	margin-left: 5px;
+	width: 150px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	color: white;
+}
+#itemsContainer #item #pastTitleArtist {
+	width: 300px;
+}
+       	#wrapper {
+    resize: none;
+}
+#hide{
+	display: none;
+}
+        </style>
+	</head>
+	
+	<body>
+		
+		<div id="center">
+			<div id="imageContainer"><img id="image" class = "image" src="https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png" alt="" onerror="this.onerror=null;this.src='https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png'"></div>
+			<div id="title">{title}</div>
+			<div id="artist">{Artist}</div>
+		</div>
+		<audio id="hide" title="Title Here" controls>
+		</audio>
+		
+		
+<div id="wrapper">		
+	<div id="itemsContainer">
+	</div>
+
+	<div class="container">
+			<div class="box center"></div>
+			<!--   <div class="box pause"></div> -->
+		</div>
+	</div>
+</body>
+	<!-- Include the jQuery Mobile library -->
+	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js"></script>
+        <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js"></script>
+        <script src="https://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.js"></script>
+        <script src="https://code.jquery.com/mobile/1.2.1/jquery.mobile-1.2.1.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/mobile/1.0/jquery.mobile-1.0.js"></script>
+	<!-- Include the jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.js"></script>
+	<script>
+		// Keep Track of played audio
+		var pastSongs = [];
+		var songProperties = {
+			"title":"Title",
+			"artist":"Artist",
+			"src":"Image"
+		};
+		var songChanged = false;
+		var LiveAudio = new Audio('https://live.wostreaming.net/direct/kcwu-kcwufmmp3-ibc1');
+		//https://live.wostreaming.net/direct/kcwu-kcwufmmp3-ibc1
+		//https://live.wostreaming.net/direct/kcwu-burg2mp3-ibc4
+		const state = {
+			Playing: "playing",
+			Paused: "paused",
+		}
+		let Player = state.Paused;
+		setInterval(updateTitleArtist, 5000);
+		
+		const box = document.querySelector('.box');
+		box.addEventListener('click', (e)=>{
+			e.target.classList.toggle('pause');
+			
+			if(Player === state.Paused){ // if Player is paused
+				// set playing state to play
+				Player = state.Playing;
+				LiveAudio.play();
+			}else{
+				// set playing state to pause
+				Player = state.Paused;
+				LiveAudio.pause();
+			}
+		})
+		function imageExists(image_url){
+    		var http = new XMLHttpRequest();
+			http.open('HEAD', image_url, false);
+    		http.send();
+    		return http.status != 404;
+
+		}
+		function updateTitleArtist(){
+		'use strict';
+		//use jQuery ajax call
+		$.ajax({
+			//url: "http://api.nowplaying.abacast.net/prt/nowplaying/2/1/3057/nowplaying.xml",
+                        //3295
+			
+			url: "https://prt.wostreaming.net/prt/nowplaying/2/6/3057/nowplaying.xml",
+			picurl: "http://d2ybyaxt0fuzrp.cloudfront.net/image/3057/Tai+Verdes/A-O-K/medium",
+			cache: false,
+			dataType: "xml",
+			
+			success: function(xml){
+				
+				$(xml).find("performances").each(function(){
+					// Parse xml first elements
+					var artist = $(this).find("artist:eq(0)").text();
+					var title = $(this).find("title:eq(0)").text();         
+					var image = $(this).find("mediumimage:eq(0)").text();
+					
+					/*
+						On Song Change
+					*/
+					if($("#artist").text() != artist){
+						console.log("Song Changed!");
+						songChanged = true;
+					}
+					//add the info to the div on the page
+					if(songChanged){
+						/*
+							Update Currently Playing
+						*/
+						$("#title").empty();
+						$("#artist").empty();
+						$("#artist").append(artist);
+						$("#title").append(title);
+						document.getElementById('image').src=image;
+					
+					
+						/*
+							Update Recently Played
+						*/
+						var start = 1;
+						var stop = 6;
+						while (start != stop){
+							songProperties = {
+								"title": $(this).find("title:eq("+start+")").text(),
+								"artist": $(this).find("artist:eq("+start+")").text(),
+								"src": $(this).find("mediumimage:eq("+start+")").text()
+							};
+							pastSongs.push(songProperties);
+							if(pastSongs.length > 5){
+								pastSongs.shift();
+							}
+							start++;
+						}
+						$(xml).find("performances").each(function(){
+							var str = "";
+							pastSongs.forEach(function(pastSongs){
+								str += "<div id='item'>"+
+											'<div id="pastImage">'+
+												'<img id="coverImage" src="' + pastSongs.src +'" onerror="this.onerror=null;this.src='+"'https://static.wixstatic.com/media/d672b9_624081ec5e044bd19200e4176c087059~mv2.png'"+'"></img>'+
+											'</div>' +
+											'<div id="pastTitleArtist">'+
+												'<p>'+ pastSongs.title +'</p>'+
+												'<p>'+ pastSongs.artist	+'</p>'+
+											'</div>'+
+										'</div>';
+									
+							});
+							document.getElementById("itemsContainer").innerHTML = str;
+						});
+						songChanged = false;
+					}
+					
+				});
+			}
+				
+				
+		});
+}
+	</script>
+</html>
